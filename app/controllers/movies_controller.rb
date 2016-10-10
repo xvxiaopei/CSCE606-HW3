@@ -11,39 +11,37 @@ class MoviesController < ApplicationController
   end
 
   def index
-    sort = params[:sort]
-    if sort == "title" 
-      session[:Movie_title] = "hilite"
-      @movies = Movie.all.order(sort)
-      session[:Release_date] = ""
-    elsif sort == "release_date"
-      session[:Release_date] = "hilite"
-      @movies = Movie.all.order(sort)
-      session[:Movie_title] = ""
+    @all_ratings = Array.new
+    Movie.select(:rating).uniq.each do |r|
+      @all_ratings.push r.rating
+    end
+
+    if params[:ratings]!=nil
+      session[:ratings] = params[:ratings]
     else
-      @movies = Movie.all
-    end
-    
-    if params[:ratings] != nil
-      session[:filtered_ratings] = params[:ratings]
-    end
-    
-    @all_ratings = Movie.select(:rating).uniq
-    if session[:filtered_ratings] == nil
-      session[:filtered_ratings] = Hash.new
-      @all_ratings.each do |x|
-        session[:filtered_ratings][x.rating] = 1
+      if session[:ratings]==nil
+        params[:ratings] = Hash.new
+        @all_ratings.each do |x|
+          params[:ratings][x] = 1
+        end
+      else 
+        params[:ratings]=session[:ratings]
       end
+      redirect_to movies_path(params)
+    end
+        
+    
+    if params[:sort]==nil
+      params[:sort] = session[:sort]
+    else
+      session[:sort] = params[:sort]
     end
     
-    # @movies = @movies.where({rating: session[:filtered_ratings].keys})
-    # if session[:movie_highlight] == "hilite" and params[:title_sort].nil? and params[:date_sort].nil?
-    #   params[:title_sort] = "selected"
-    # elsif session[:date_highlight] == "hilite" and params[:title_sort].nil? and params[:date_sort].nil? 
-    #   params[:date_sort] = "selected"
-    # elsif params[:ratings].nil? and session[:filtered_ratings]
-    #   params[:ratings] = session[:filtered_ratings]
-    # end
+    
+    @title = params[:sort] == "title"  ?  "hilite":"";
+    @date =  params[:sort] == "release_date"? "hilite":"";
+    @rate =  params[:ratings]
+    @movies = Movie.all.where({rating: params[:ratings].keys}).order(params[:sort]) 
   end
 
   def new
