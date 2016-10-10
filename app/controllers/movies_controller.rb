@@ -45,7 +45,6 @@ class MoviesController < ApplicationController
   end
 
   def new
-    # default: render 'new' template
   end
 
   def create
@@ -71,5 +70,4 @@ class MoviesController < ApplicationController
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
   end
-
 end
